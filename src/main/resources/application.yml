@@ -1,5 +1,5 @@
 server:
-  port: ${SPRING_PORT}
+  port: 8080
   servlet:
     session:
       cookie:
@@ -14,8 +14,8 @@ front:
 spring:
   datasource:
     url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: root
+    password: Park2508**
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 15
