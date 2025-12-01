@@ -1,0 +1,16 @@
+package sw2.project.feature.qa.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+public class AnswerCreateRequest {
+
+    @NotBlank(message = "사용자 ID는 필수입니다.")
+    private String userId;
+
+    @NotBlank(message = "내용은 필수입니다.")
+    private String content;
+}
