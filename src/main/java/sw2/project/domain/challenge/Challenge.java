@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import sw2.project.common.BaseTimeEntity;
 
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class Challenge extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChallengeParticipant> participants = new ArrayList<>();
 

@@ -25,7 +25,7 @@ public class ChallengeService {
      * 모든 챌린지 목록을 조회합니다.
      */
     public List<Challenge> findAllChallenges() {
-        return challengeRepository.findAll();
+        return challengeRepository.findAllWithParticipants();
     }
 
     /**
