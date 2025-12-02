@@ -35,11 +35,12 @@ public class HealthLog {
     private String dietDescription; //식단 기록
 
     @Builder
-    public HealthLog(User user, Integer systolicBp, Integer diastolicBp, Integer exerciseMinutes, Integer sodiumIntake) {
+    public HealthLog(User user, Integer systolicBp, Integer diastolicBp, Integer bloodSugar, Integer exerciseMinutes, Integer sodiumIntake) {
         this.user = user;
         this.date = LocalDate.now();
         this.systolicBp = systolicBp;
         this.diastolicBp = diastolicBp;
+        this.bloodSugar = bloodSugar;
         this.exerciseMinutes = exerciseMinutes;
         this.sodiumIntake = sodiumIntake;
     }
