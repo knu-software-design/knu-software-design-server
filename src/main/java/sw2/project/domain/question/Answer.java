@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sw2.project.common.BaseTimeEntity;
-import sw2.project.domain.user.User;
 
 @Entity
 @Table(name = "answers")
@@ -18,28 +17,21 @@ public class Answer extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
-    private User author;
+    @Column(nullable = false, length = 36)
+    private String userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "question_id")
     private Question question;
 
     @Lob
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
     @Builder
-    public Answer(User author, Question question, String content) {
-        this.author = author;
+    public Answer(String userId, Question question, String content) {
+        this.userId = userId;
         this.question = question;
         this.content = content;
-    }
-
-    public void setQuestion(Question question) {
-        this.question = question;
-        if (!question.getAnswers().contains(this)) {
-            question.getAnswers().add(this);
-        }
     }
 }

@@ -16,7 +16,7 @@ public class AnswerResponse {
     public AnswerResponse(Answer answer) {
         this.answerId = answer.getId();
         this.content = answer.getContent();
-        this.authorId = answer.getAuthor().getId();
+        this.authorId = answer.getUserId();
         this.createdAt = answer.getCreatedAt();
     }
 }
