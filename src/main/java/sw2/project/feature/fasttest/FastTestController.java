@@ -16,10 +16,11 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/v1/fast-test")
 @RequiredArgsConstructor
-public class FastTestController {
+public class FastTestController implements FastTestControllerDocs {
 
     private final FastTestService fastTestService;
 
+    @Override
     @PostMapping("/run")
     public ResponseEntity<FastTestResponse> runTest(@Valid @RequestBody FastTestRequest request) {
         JsonNode result = fastTestService.runFastTest(request);

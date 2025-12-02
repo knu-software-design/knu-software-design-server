@@ -15,11 +15,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-public class ChallengeController {
+public class ChallengeController implements ChallengeControllerDocs {
 
     private final ChallengeService challengeService;
 
-    // 챌린지 전체 목록 조회
+    @Override
     @GetMapping("/challenges")
     public ResponseEntity<List<ChallengeResponse>> getAllChallenges() {
         List<Challenge> challenges = challengeService.findAllChallenges();
@@ -29,7 +29,7 @@ public class ChallengeController {
         return ResponseEntity.ok(response);
     }
 
-    // 챌린지 참여
+    @Override
     @PostMapping("/challenges/{challengeId}/join")
     public ResponseEntity<String> joinChallenge(
             @PathVariable Long challengeId,
@@ -38,7 +38,7 @@ public class ChallengeController {
         return ResponseEntity.status(HttpStatus.CREATED).body("챌린지 참여가 완료되었습니다.");
     }
 
-    // 특정 사용자가 참여한 챌린지 목록 조회
+    @Override
     @GetMapping("/users/{userId}/challenges")
     public ResponseEntity<List<UserChallengeResponse>> getUserChallenges(@PathVariable String userId) {
         List<ChallengeParticipant> participants = challengeService.findChallengesByUserId(userId);
@@ -48,7 +48,7 @@ public class ChallengeController {
         return ResponseEntity.ok(response);
     }
 
-    // 챌린지 진행률 업데이트
+    @Override
     @PostMapping("/challenges/progress")
     public ResponseEntity<String> updateProgress(@Valid @RequestBody ChallengeProgressRequest request) {
         challengeService.updateChallengeProgress(request);

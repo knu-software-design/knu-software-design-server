@@ -13,18 +13,18 @@ import sw2.project.feature.chat.dto.ChatResponse;
 @RestController
 @RequestMapping("/api/v1/chat")
 @RequiredArgsConstructor
-public class ChatController {
+public class ChatController implements ChatControllerDocs {
 
     private final ChatService chatService;
 
+    @Override
     @PostMapping
     public ResponseEntity<ChatResponse> handleChat(@Valid @RequestBody ChatRequest chatRequest) {
+        // try-catch 블록은 실제 운영에서는 GlobalExceptionHandler로 대체하는 것이 좋습니다.
         try {
             String reply = chatService.getAiReply(chatRequest);
             return ResponseEntity.ok(new ChatResponse(reply));
         } catch (Exception e) {
-            // 간단한 예외 처리
-            // GlobalExceptionHandler를 통해 더 정교하게 처리할 수 있습니다.
             return ResponseEntity.internalServerError()
                     .body(new ChatResponse("죄송합니다. 메시지 처리 중 오류가 발생했습니다."));
         }
