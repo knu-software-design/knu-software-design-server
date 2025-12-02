@@ -20,7 +20,6 @@ public class ChatController implements ChatControllerDocs {
     @Override
     @PostMapping
     public ResponseEntity<ChatResponse> handleChat(@Valid @RequestBody ChatRequest chatRequest) {
-        // try-catch 블록은 실제 운영에서는 GlobalExceptionHandler로 대체하는 것이 좋습니다.
         try {
             String reply = chatService.getAiReply(chatRequest);
             return ResponseEntity.ok(new ChatResponse(reply));

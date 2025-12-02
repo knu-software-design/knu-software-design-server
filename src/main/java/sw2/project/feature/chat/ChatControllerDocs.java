@@ -11,6 +11,6 @@ import sw2.project.feature.chat.dto.ChatResponse;
 @Tag(name = "챗봇 API", description = "대화형 코칭 챗봇 API")
 public interface ChatControllerDocs {
 
-    @Operation(summary = "챗봇 메시지 전송", description = "사용자가 메시지를 보내면 AI의 Mock 응답을 반환하고 대화 내용을 저장합니다.")
+    @Operation(summary = "챗봇 메시지 전송", description = "사용자가 메시지를 보내면 OpenAI API를 호출하여 얻은 AI의 응답을 반환하고 대화 내용을 저장합니다.")
     ResponseEntity<ChatResponse> handleChat(@Valid @RequestBody ChatRequest chatRequest);
 }
