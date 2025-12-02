@@ -21,7 +21,7 @@ public class QuestionResponse {
         this.questionId = question.getId();
         this.title = question.getTitle();
         this.content = question.getContent();
-        this.authorId = question.getAuthor().getId();
+        this.authorId = question.getUserId();
         this.createdAt = question.getCreatedAt();
         this.answers = question.getAnswers().stream()
                 .map(AnswerResponse::new)
