@@ -36,7 +36,7 @@ public class QuestionService {
 
     public Question findQuestionById(Long questionId) {
         return questionRepository.findById(questionId)
-                .orElseThrow(() -> new IllegalArgumentException("Question not found with id: " + questionId));
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 질문을 찾을 수 없습니다: " + questionId));
     }
 
     @Transactional
@@ -48,5 +48,13 @@ public class QuestionService {
                 .content(request.getContent())
                 .build();
         return answerRepository.save(answer);
+    }
+
+    public List<Answer> findAnswersByQuestionId(Long questionId) {
+        // 먼저 질문이 존재하는지 확인하여, 없으면 404 에러를 유도
+        if (!questionRepository.existsById(questionId)) {
+            throw new IllegalArgumentException("해당 ID의 질문을 찾을 수 없습니다: " + questionId);
+        }
+        return answerRepository.findByQuestionId(questionId);
     }
 }
