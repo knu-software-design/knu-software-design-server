@@ -6,20 +6,27 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Getter@Setter
+@Getter @Setter
 @NoArgsConstructor
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private String name; // [추가] 이름 필드
 
     private int age;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
-    private boolean hasFamilyHistory;
-}
 
-enum Gender {
-    MALE,FEMALE;
+    private boolean hasFamilyHistory;
+
+    public User(String name, int age, Gender gender, boolean hasFamilyHistory) {
+        this.name = name;
+        this.age = age;
+        this.gender = gender;
+        this.hasFamilyHistory = hasFamilyHistory;
+    }
 }
