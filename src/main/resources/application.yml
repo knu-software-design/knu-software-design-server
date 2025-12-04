@@ -3,7 +3,7 @@ openai:
     key: ${OPEN_AI_API}
 
 server:
-  port: ${SPRING_PORT}
+  port: ${SPRING_PORT:8080}
   servlet:
     session:
       cookie:
@@ -13,13 +13,13 @@ server:
         path: /
 
 front:
-  base-url: ${FRONT_BASEURL}
+  base-url: ${FRONT_BASEURL:http://localhost:5173}
 
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:jdbc:mysql://localhost:30005/swProject_db}
+    username: ${DB_USERNAME:swProject}
+    password: ${DB_PASSWORD:asdf}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 15
