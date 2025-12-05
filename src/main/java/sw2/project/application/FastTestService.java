@@ -1,33 +1,50 @@
 package sw2.project.application;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import sw2.project.domain.FastTestRecord;
+import sw2.project.extern.openai.dto.OpenAIChatRequest;
+import sw2.project.extern.openai.dto.OpenAIChatResponse;
 import sw2.project.infra.FastTestRecordRepository;
 import sw2.project.presentation.dto.FastTestRequest;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class FastTestService {
 
     private final FastTestRecordRepository recordRepository;
-    private final ObjectMapper objectMapper; // JSON 처리를 위해 주입
+    private final ObjectMapper objectMapper;
+    private final RestTemplate restTemplate;
+
+    @Value("${openai.api.key}")
+    private String openaiApiKey;
+
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
     /**
-     * FAST 테스트를 실행하고, Mock 결과를 반환하며, 결과를 저장합니다.
+     * FAST 테스트를 실행하고, OpenAI API를 호출하여 결과를 반환하며, 결과를 저장합니다.
      */
     @Transactional
     public JsonNode runFastTest(FastTestRequest request) {
-        // 1. Mock 분석 결과 생성
-        JsonNode mockResult = generateMockAnalysis(request.getUserInput());
+        // 1. OpenAI API 호출하여 분석 결과 생성
+        JsonNode analysisResult = callOpenAIForAnalysis(request);
 
         // 2. 결과 저장을 위해 JsonNode를 String으로 변환
         String resultString;
         try {
-            resultString = objectMapper.writeValueAsString(mockResult);
+            resultString = objectMapper.writeValueAsString(analysisResult);
         } catch (Exception e) {
             throw new RuntimeException("Failed to serialize test result to JSON string.", e);
         }
@@ -40,39 +57,64 @@ public class FastTestService {
         recordRepository.save(record);
 
         // 4. 분석 결과(JsonNode) 반환
-        return mockResult;
+        return analysisResult;
     }
 
     /**
-     * FAST 테스트 분석을 대체하는 Mock 메서드
-     * @param userInput 사용자의 입력 데이터
-     * @return 모의 분석 결과 (JSON 형식)
+     * FAST 테스트 분석을 위해 OpenAI API를 호출하는 메서드
+     * @param request 사용자의 입력 데이터
+     * @return 분석 결과 (JSON 형식)
      */
-    private JsonNode generateMockAnalysis(Object userInput) {
-        // 실제로는 userInput을 기반으로 복잡한 분석을 수행해야 함
-        String jsonString = """
-        {
-          "summary": "당신은 '안정적인 전략가' 유형입니다.",
-          "details": "변화에 대한 저항이 적고, 계획에 따라 움직이는 것을 선호합니다. 데이터 기반의 논리적인 의사결정을 내리는 경향이 있습니다.",
-          "recommendations": [
-            "장기적인 관점의 목표 설정하기",
-            "주기적으로 새로운 기술이나 지식 학습하기",
-            "팀 프로젝트에서 계획 수립 역할 맡기"
-          ],
-          "scores": {
-            "Flexibility": 78,
-            "Adaptability": 85,
-            "Strategy": 92,
-            "Tenacity": 88
-          }
-        }
-        """;
+    private JsonNode callOpenAIForAnalysis(FastTestRequest request) {
+        // 1. 프롬프트 생성
+        String prompt = buildPrompt(request);
 
+        // 2. OpenAI API 요청 생성
+        OpenAIChatRequest.Message userMessage = new OpenAIChatRequest.Message("user", prompt);
+        OpenAIChatRequest openAIRequest = OpenAIChatRequest.builder()
+                .model("gpt-3.5-turbo")
+                .messages(List.of(userMessage))
+                .maxTokens(500) // 응답 길이를 넉넉하게 설정
+                .build();
+
+        // 3. HTTP 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(openaiApiKey);
+
+        // 4. API 호출
+        HttpEntity<OpenAIChatRequest> entity = new HttpEntity<>(openAIRequest, headers);
+        OpenAIChatResponse openAIResponse = restTemplate.postForObject(OPENAI_API_URL, entity, OpenAIChatResponse.class);
+
+        // 5. 응답 파싱 및 JsonNode로 변환
         try {
-            // ObjectMapper를 사용하여 JSON 문자열을 JsonNode 객체로 변환
-            return objectMapper.readTree(jsonString);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create mock analysis JSON.", e);
+            String aiReply = (openAIResponse != null) ? openAIResponse.firstContent() : "{}";
+            return objectMapper.readTree(aiReply);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to parse OpenAI response to JSON.", e);
         }
+    }
+
+    private String buildPrompt(FastTestRequest request) {
+        return String.format("""
+            You are a helpful medical assistant AI. A user has submitted results from a FAST (Face, Arm, Speech, Time) test for stroke symptoms. Based on the following user-provided information, please provide a preliminary analysis and recommendation.
+            
+            **IMPORTANT**: Please write your entire response in Korean.
+            
+            Return your response ONLY as a JSON object with the following structure: {"summary": "<one-sentence summary>", "details": "<detailed analysis>", "recommendations": ["<recommendation 1>", "<recommendation 2>"], "isEmergency": <true or false>}.
+
+            User's symptoms:
+            - Face: %s
+            - Arm: %s
+            - Speech: %s
+            - Time: %s
+
+            If the symptoms strongly indicate a stroke or other medical emergency, set 'isEmergency' to true and make the first recommendation 'Call emergency services immediately' (in Korean: '즉시 응급 서비스에 전화하세요').
+            """,
+                request.getFace(),
+                request.getArm(),
+                request.getSpeech(),
+                request.getTime()
+        );
     }
 }
