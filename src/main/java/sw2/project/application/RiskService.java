@@ -5,10 +5,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sw2.project.domain.HealthLog;
 import sw2.project.domain.User;
-import sw2.project.presentation.dto.RiskResponse;
 import sw2.project.global.RiskLevel;
 import sw2.project.infra.HealthLogRepository;
 import sw2.project.infra.UserRepository;
+import sw2.project.presentation.dto.RiskResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -29,16 +29,35 @@ public class RiskService {
         HealthLog latestLog = healthLogRepository.findTop1ByUser_IdOrderByDateDesc(userId)
                 .orElseThrow(() -> new IllegalArgumentException("분석할 건강 데이터가 없습니다. 먼저 데이터를 입력해주세요."));
 
-        // 2. 위험도 점수 계산 (데모용 로직)
-        int totalScore = calculateDemoScore(user, latestLog);
-
-        // 3. 점수에 따른 등급 판정
-        RiskLevel riskLevel = determineRiskLevel(totalScore);
+        RiskCalculationResult calculationResult = buildRiskCalculation(user, latestLog);
 
         // 4. 주요 위험 요인 분석 (피드백 메시지 생성)
-        String feedback = generateFeedback(user, latestLog, riskLevel);
+        String feedback = generateFeedback(user, latestLog, calculationResult.getRiskLevel());
 
-        return new RiskResponse(userId, riskLevel, totalScore, "복합 요인", feedback);
+        return new RiskResponse(
+                userId,
+                calculationResult.getRiskLevel(),
+                calculationResult.getTotalScore(),
+                "복합 요인",
+                feedback
+        );
+    }
+
+    /**
+     * 위험도 점수와 등급을 함께 반환하는 보조 메서드 (시뮬레이션 등에서 활용).
+     */
+    public RiskCalculationResult calculateRiskResult(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        HealthLog latestLog = healthLogRepository.findTop1ByUser_IdOrderByDateDesc(userId)
+                .orElseThrow(() -> new IllegalArgumentException("분석할 건강 데이터가 없습니다. 먼저 데이터를 입력해주세요."));
+        return buildRiskCalculation(user, latestLog);
+    }
+
+    private RiskCalculationResult buildRiskCalculation(User user, HealthLog log) {
+        int totalScore = calculateDemoScore(user, log);
+        RiskLevel riskLevel = determineRiskLevel(totalScore);
+        return new RiskCalculationResult(totalScore, riskLevel);
     }
 
     // [로직] 데모용 점수 계산기
