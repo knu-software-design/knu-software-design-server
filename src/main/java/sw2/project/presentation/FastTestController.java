@@ -27,9 +27,8 @@ public class FastTestController implements FastTestControllerDocs {
         JsonNode result = fastTestService.runFastTest(request);
         FastTestResponse response = new FastTestResponse(
                 request.getUserId(),
-                result,
-                LocalDateTime.now()
-        );
+                result.toString(),
+                LocalDateTime.now());
         return ResponseEntity.ok(response);
     }
 }
