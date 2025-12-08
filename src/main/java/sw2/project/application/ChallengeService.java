@@ -8,6 +8,7 @@ import sw2.project.domain.ChallengeParticipant;
 import sw2.project.domain.ChallengeParticipant.ParticipantStatus;
 import sw2.project.infra.ChallengeParticipantRepository;
 import sw2.project.infra.ChallengeRepository;
+import sw2.project.presentation.dto.ChallengeCreateRequest;
 import sw2.project.presentation.dto.ChallengeProgressRequest;
 
 import java.util.List;
@@ -29,6 +30,28 @@ public class ChallengeService {
     }
 
     /**
+     * 새로운 챌린지를 생성합니다.
+     */
+    @Transactional
+    public Long createChallenge(ChallengeCreateRequest request) {
+        Challenge challenge = Challenge.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
+                .build();
+
+        Challenge savedChallenge = challengeRepository.save(challenge);
+
+        // 생성자도 자동으로 참여시킬지 여부는 기획에 따라 다르지만, 보통 생성자는 참여자로 포함됨
+        if (request.getUserId() != null && !request.getUserId().isEmpty()) {
+            joinChallenge(savedChallenge.getId(), request.getUserId());
+        }
+
+        return savedChallenge.getId();
+    }
+
+    /**
      * 사용자가 특정 챌린지에 참여합니다.
      */
     @Transactional
@@ -37,7 +60,8 @@ public class ChallengeService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 챌린지를 찾을 수 없습니다: " + challengeId));
 
         // 이미 참여했는지 확인
-        Optional<ChallengeParticipant> existingParticipant = participantRepository.findByChallengeAndUserId(challenge, userId);
+        Optional<ChallengeParticipant> existingParticipant = participantRepository.findByChallengeAndUserId(challenge,
+                userId);
         if (existingParticipant.isPresent()) {
             throw new IllegalStateException("이미 참여중인 챌린지입니다.");
         }
@@ -66,7 +90,8 @@ public class ChallengeService {
         Challenge challenge = challengeRepository.findById(request.getChallengeId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 챌린지를 찾을 수 없습니다: " + request.getChallengeId()));
 
-        ChallengeParticipant participant = participantRepository.findByChallengeAndUserId(challenge, request.getUserId())
+        ChallengeParticipant participant = participantRepository
+                .findByChallengeAndUserId(challenge, request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 챌린지에 참여하고 있지 않습니다."));
 
         if (participant.getStatus() == ParticipantStatus.COMPLETED) {

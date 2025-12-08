@@ -30,6 +30,12 @@ public class ChallengeController implements ChallengeControllerDocs {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/challenges")
+    public ResponseEntity<String> createChallenge(@Valid @RequestBody ChallengeCreateRequest request) {
+        challengeService.createChallenge(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body("챌린지가 생성되었습니다.");
+    }
+
     @Override
     @PostMapping("/challenges/{challengeId}/join")
     public ResponseEntity<String> joinChallenge(

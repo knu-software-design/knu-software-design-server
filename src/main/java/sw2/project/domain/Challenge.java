@@ -32,9 +32,17 @@ public class Challenge extends BaseTimeEntity {
     @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChallengeParticipant> participants = new ArrayList<>();
 
+    @Column(length = 10)
+    private String startDate;
+
+    @Column(length = 10)
+    private String endDate;
+
     @Builder
-    public Challenge(String title, String description) {
+    public Challenge(String title, String description, String startDate, String endDate) {
         this.title = title;
         this.description = description;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 }
