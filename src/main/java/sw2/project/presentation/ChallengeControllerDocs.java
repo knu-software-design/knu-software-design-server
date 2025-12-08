@@ -15,7 +15,7 @@ import sw2.project.presentation.dto.UserChallengeResponse;
 import java.util.List;
 
 @Tag(name = "챌린지 API", description = "그룹 챌린지 기능 API")
-public interface ChallengeControllerDocs {
+public interface    ChallengeControllerDocs {
 
     @Operation(summary = "전체 챌린지 목록 조회", description = "참여 가능한 모든 챌린지의 목록을 조회합니다.")
     ResponseEntity<List<ChallengeResponse>> getAllChallenges();
